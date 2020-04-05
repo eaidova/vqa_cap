@@ -1,0 +1,16 @@
+model:
+  type: A3x2
+  num_hidden: 1280
+  activation: LeakyReLU
+  norm: weights
+  train:
+    batch_size: 16
+    epochs: 40
+    optimizer: Adamax
+    initializer: kaiming_normal
+    dropout: 0.3
+    dropout_l: 0.1
+    dropout_c: 0.5
+    dropout_w: 0.4
+    dropout_g: 0.2
+    seed: 42

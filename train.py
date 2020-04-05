@@ -46,11 +46,12 @@ def resume_train(model, output, optim):
             optim.load_state_dict(checkpoint['optimizer'])
 
 
-def train(model, train_loader, eval_loader, num_epochs, output, opt, wd):
+def train(model, train_loader, eval_loader, output, train_config):
+    num_epochs = train_config['num_epochs']
     utils.create_dir(output)
     logger = utils.Logger(os.path.join(output, 'log.txt'))
     best_eval_score = 0
-    optim = select_optimizer(model.parameters(), opt, wd)
+    optim = select_optimizer(model.parameters(), train_config['optimizer'], train_config['weights_decay'])
     for epoch in range(num_epochs):
 
         total_loss = 0

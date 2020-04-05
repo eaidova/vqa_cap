@@ -190,6 +190,7 @@ def build_baseline(dataset, num_hid, dropout, norm, activation, dropL , dropG, d
 
     classifier = SimpleClassifier(
         in_dim=num_hid, hid_dim=2 * num_hid, out_dim=dataset.num_ans_candidates, dropout=dropC, norm= norm, act= activation)
+
     return Model(w_emb, q_emb, v_att, q_net, v_net, classifier)
 
 # 2*Attn: 1 layer seperate, element-wise *, 1 layer, output layer, softmax
@@ -217,7 +218,11 @@ def build_model_A3x2(dataset, num_hid, dropout, norm, activation, dropL , dropG,
     reference_caption_decoder = CaptionRNN(300, 512,  num_layers = 1 )
     question_caption_decoder = CaptionRNN(300, 512, num_layers = 1 )
     caption_decoder = SimpleClassifier( in_dim=512, hid_dim=2 * num_hid, out_dim= dataset.caption_dictionary.ntoken, dropout=dropC, norm= norm, act= activation)
-    return Model_4(w_emb, q_emb, v_att_1, v_att_2, q_net, v_net, classifier, caption_w_emb, reference_caption_decoder, question_caption_decoder, caption_decoder, v2rc_net, v2qc_net)
+
+    return Model_4(
+        w_emb, q_emb, v_att_1, v_att_2, q_net, v_net, classifier,
+        caption_w_emb, reference_caption_decoder, question_caption_decoder, caption_decoder, v2rc_net, v2qc_net
+    )
 
 
 # 2*Attn: 1 layer seperate, element-wise *, output layer, softmax
@@ -242,7 +247,10 @@ def build_model_A2x2(dataset, num_hid, dropout, norm, activation, dropL , dropG,
     classifier = SimpleClassifier(
         in_dim=num_hid, hid_dim=2 * num_hid, out_dim=dataset.num_ans_candidates, dropout=dropC, norm= norm, act= activation)
 
-    return Model_2(w_emb, q_emb, v_att_1, v_att_2, q_net, v_net, classifier, caption_w_emb, reference_caption_decoder, question_caption_decoder, caption_decoder, v2rc_net, v2qc_net)
+    return Model_2(
+        w_emb, q_emb, v_att_1, v_att_2, q_net, v_net, classifier,
+        caption_w_emb, reference_caption_decoder, question_caption_decoder, caption_decoder, v2rc_net, v2qc_net
+    )
 
 
 MODELS = {
@@ -252,8 +260,19 @@ MODELS = {
 }
 
 
-def build_model(model_type, dataset, num_hid, dropout, norm, activation, dropL , dropG, dropW, dropC):
+def build_model(model_config, dataset):
+    model_type = model_config['type']
     model_builder = MODELS.get(model_type)
     if model_builder is None:
         raise ValueError('Wrong model type {}'.format(model_type))
+    num_hid = model_config['num_hid']
+    norm = model_config['norm']
+    activation = model_config['activation']
+    train_config = model_config['train']
+    dropout = train_config['dropout']
+    dropL = train_config['dropout_l']
+    dropG = train_config['dropout_g']
+    dropW = train_config['dropout_w']
+    dropC = train_config['dropout_c']
+
     return model_builder(dataset, num_hid, dropout, norm, activation, dropL , dropG, dropW, dropC)
