@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import base64
 import csv
 import h5py
-import cPickle
+import pickle
 import numpy as np
 import utils
 
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     h_val = h5py.File(val_data_file, "w")
 
     if os.path.exists(train_ids_file) and os.path.exists(val_ids_file):
-        train_imgids = cPickle.load(open(train_ids_file))
-        val_imgids = cPickle.load(open(val_ids_file))
+        train_imgids = pickle.load(open(train_ids_file))
+        val_imgids = pickle.load(open(val_ids_file))
     else:
         train_imgids = utils.load_imageid('data/train2014')
         val_imgids = utils.load_imageid('data/val2014')
@@ -79,7 +79,7 @@ if __name__ == '__main__':
             image_w = float(item['image_w'])
             image_h = float(item['image_h'])
             bboxes = np.frombuffer(
-                base64.decodestring(item['boxes']),
+                base64.decodebytes(item['boxes']),
                 dtype=np.float32).reshape((item['num_boxes'], -1))
 
             box_width = bboxes[:, 2] - bboxes[:, 0]
@@ -110,7 +110,7 @@ if __name__ == '__main__':
                 train_indices[image_id] = train_counter
                 train_img_bb[train_counter, :, :] = bboxes
                 train_img_features[train_counter, :, :] = np.frombuffer(
-                    base64.decodestring(item['features']),
+                    base64.decodebytes(item['features']),
                     dtype=np.float32).reshape((item['num_boxes'], -1))
                 train_spatial_img_features[train_counter, :, :] = spatial_features
                 train_counter += 1
@@ -119,7 +119,7 @@ if __name__ == '__main__':
                 val_indices[image_id] = val_counter
                 val_img_bb[val_counter, :, :] = bboxes
                 val_img_features[val_counter, :, :] = np.frombuffer(
-                    base64.decodestring(item['features']),
+                    base64.decodebytes(item['features']),
                     dtype=np.float32).reshape((item['num_boxes'], -1))
                 val_spatial_img_features[val_counter, :, :] = spatial_features
                 val_counter += 1
@@ -132,8 +132,8 @@ if __name__ == '__main__':
     if len(val_imgids) != 0:
         print('Warning: val_image_ids is not empty')
 
-    cPickle.dump(train_indices, open(train_indices_file, 'wb'))
-    cPickle.dump(val_indices, open(val_indices_file, 'wb'))
+    pickle.dump(train_indices, open(train_indices_file, 'wb'))
+    pickle.dump(val_indices, open(val_indices_file, 'wb'))
     h_train.close()
     h_val.close()
     print("done!")

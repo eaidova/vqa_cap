@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
-from model.attention import Att_0, Att_2, Att_3
-from model.language_model import WordEmbedding, QuestionEmbedding
-from model.classifier import SimpleClassifier
-from model.fc import FCNet
-from model.caption_model import CaptionRNN
+from .attention import Att_0, Att_2, Att_3
+from .language_model import WordEmbedding, QuestionEmbedding
+from .classifier import SimpleClassifier
+from .fc import FCNet
+from .caption_model import CaptionRNN
 
 import torch.nn.functional as F
 from torch.autograd import Variable

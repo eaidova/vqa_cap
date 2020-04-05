@@ -1,6 +1,6 @@
 import os
 import json
-import cPickle
+import pickle
 import numpy as np
 import utils
 import h5py
@@ -47,7 +47,6 @@ class Dictionary(object):
     def caption_unk_idx(self):
         return 3132
 
-
     def tokenize(self, sentence, add_word):
         sentence = sentence.lower()
         sentence = sentence.replace(',', '').replace('?', '').replace('\'s', ' \'s').replace('.', '')
@@ -62,7 +61,7 @@ class Dictionary(object):
         return tokens
 
     def dump_to_file(self, path):
-        cPickle.dump([self.word2idx, self.idx2word], open(path, 'wb'))
+        pickle.dump([self.word2idx, self.idx2word], open(path, 'wb'))
         print('dictionary dumped to %s' % path)
 
     @classmethod
@@ -106,7 +105,7 @@ def _load_dataset(dataroot, name, img_id2val):
     questions = sorted(json.load(open(question_path))['questions'],
                        key=lambda x: x['question_id'])
     answer_path = os.path.join(dataroot, 'cache', '%s_target.pkl' % name)
-    answers = cPickle.load(open(answer_path, 'rb'))
+    answers = pickle.load(open(answer_path, 'rb'))
     answers = sorted(answers, key=lambda x: x['question_id'])
 
     utils.assert_eq(len(questions), len(answers))
@@ -127,14 +126,14 @@ class VQAFeatureDataset(Dataset):
 
         ans2label_path = os.path.join(dataroot, 'cache', 'trainval_ans2label.pkl')
         label2ans_path = os.path.join(dataroot, 'cache', 'trainval_label2ans.pkl')
-        self.ans2label = cPickle.load(open(ans2label_path, 'rb'))
-        self.label2ans = cPickle.load(open(label2ans_path, 'rb'))
+        self.ans2label = pickle.load(open(ans2label_path, 'rb'))
+        self.label2ans = pickle.load(open(label2ans_path, 'rb'))
         self.num_ans_candidates = len(self.ans2label)
 
         self.dictionary = dictionary
         self.caption_dictionary = caption_dictionary
 
-        self.img_id2idx = cPickle.load(
+        self.img_id2idx = pickle.load(
             open(os.path.join(dataroot, '%s36_imgid2idx.pkl' % name)))
         print('loading features from h5 file')
         h5_path = os.path.join(dataroot, '%s36_ori.hdf5' % name)
@@ -143,7 +142,7 @@ class VQAFeatureDataset(Dataset):
             self.spatials = np.array(hf.get('spatial_features'))
 
         self.coco = COCO('data/annotations/captions_'+name+'2014.json')
-        self.entries  = cPickle.load(open('VQA_caption_'+name+'dataset.pkl', 'rb'))
+        self.entries  = pickle.load(open('VQA_caption_'+name+'dataset.pkl', 'rb'))
         
         self.tokenize()
         self.tensorize()
@@ -214,7 +213,6 @@ class VQAFeatureDataset(Dataset):
             for c_id in range(len(entry['c_token'])):
                 caption = torch.from_numpy(np.array(entry['c_token'][c_id]))
                 entry['c_token_tensor'][c_id,: ] = caption
-
 
     def __getitem__(self, index):
         entry = self.entries[index]

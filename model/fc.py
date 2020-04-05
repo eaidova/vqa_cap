@@ -1,4 +1,3 @@
-from __future__ import print_function
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
 

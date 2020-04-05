@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from model.fc import FCNet, GTH, get_norm
+from .fc import FCNet, GTH, get_norm
 
 
 # Default concat, 1 layer, output layer

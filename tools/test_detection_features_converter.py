@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import base64
 import csv
 import h5py
-import cPickle
+import pickle
 import numpy as np
 import utils
 
@@ -38,10 +38,10 @@ if __name__ == '__main__':
     h_test = h5py.File(test_data_file, "w")
 
     if os.path.exists(test_ids_file):
-        test_imgids = cPickle.load(open(test_ids_file))
+        test_imgids = pickle.load(open(test_ids_file))
     else:
         test_imgids = utils.load_imageid('data/test2015')
-        cPickle.dump(test_imgids, open(test_ids_file, 'wb'))
+        pickle.dump(test_imgids, open(test_ids_file, 'wb'))
 
     test_indices = {}
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
             image_w = float(item['image_w'])
             image_h = float(item['image_h'])
             bboxes = np.frombuffer(
-                base64.decodestring(item['boxes']),
+                base64.decodebytes(item['boxes']),
                 dtype=np.float32).reshape((item['num_boxes'], -1))
 
             box_width = bboxes[:, 2] - bboxes[:, 0]
@@ -94,7 +94,7 @@ if __name__ == '__main__':
                 test_indices[image_id] = test_counter
                 test_img_bb[test_counter, :, :] = bboxes
                 test_img_features[test_counter, :, :] = np.frombuffer(
-                    base64.decodestring(item['features']),
+                    base64.decodebytes(item['features']),
                     dtype=np.float32).reshape((item['num_boxes'], -1))
                 test_spatial_img_features[test_counter, :, :] = spatial_features
                 test_counter += 1
@@ -104,6 +104,6 @@ if __name__ == '__main__':
     if len(test_imgids) != 0:
         print('Warning: test_image_ids is not empty')
 
-    cPickle.dump(test_indices, open(test_indices_file, 'wb'))
+    pickle.dump(test_indices, open(test_indices_file, 'wb'))
     h_test.close()
     print("done!")

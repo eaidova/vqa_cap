@@ -1,6 +1,6 @@
 import torch.nn as nn
 from torch.nn.utils.weight_norm import weight_norm
-from model.fc import GTH, get_act, get_norm
+from .fc import GTH, get_act, get_norm
 
 
 class SimpleClassifier(nn.Module):

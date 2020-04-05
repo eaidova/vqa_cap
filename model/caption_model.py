@@ -27,7 +27,7 @@ class CaptionDecoderRNN(nn.Module):
         self.rnn_type = rnn_type
 
     def forward(self, xx ,features ):
-    	# in_dim = v_dim
+        # in_dim = v_dim
         # xx: [batch * 5, sequence 20 , in_dim ] captions
         # features: [batch * 5, 36 , v_dim]
         x = torch.cat((torch.mean(features, 1, keepdim = True) , xx), dim = 1)

@@ -2,12 +2,10 @@ from __future__ import print_function
 import os
 import sys
 import json
-import numpy as np
 import re
-import cPickle
+import pickle
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from dataset import Dictionary
 import utils
 
 
@@ -169,9 +167,9 @@ def create_ans2label(occurence, name, cache_root='data/cache'):
     utils.create_dir(cache_root)
 
     cache_file = os.path.join(cache_root, name+'_ans2label.pkl')
-    cPickle.dump(ans2label, open(cache_file, 'wb'))
+    pickle.dump(ans2label, open(cache_file, 'wb'))
     cache_file = os.path.join(cache_root, name+'_label2ans.pkl')
-    cPickle.dump(label2ans, open(cache_file, 'wb'))
+    pickle.dump(label2ans, open(cache_file, 'wb'))
     return ans2label
 
 
@@ -208,7 +206,7 @@ def compute_target(answers_dset, ans2label, name, cache_root='data/cache'):
 
     utils.create_dir(cache_root)
     cache_file = os.path.join(cache_root, name+'_target.pkl')
-    cPickle.dump(target, open(cache_file, 'wb'))
+    pickle.dump(target, open(cache_file, 'wb'))
     return target
 
 
