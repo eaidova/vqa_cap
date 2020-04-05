@@ -34,7 +34,12 @@ pip install -r requirements.txt
 ```
 
 ## Data preparation
+See [data preparation instruction](./data/README.md)
 
 ## Training
-
+You are able to run training using following command
+```bash
+python main.py --device_ids <gpu_ids>
+```
 ## Test on VQA2.0
+TBD
