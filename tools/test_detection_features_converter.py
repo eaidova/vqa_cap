@@ -19,13 +19,14 @@ import csv
 import h5py
 import pickle
 import numpy as np
-import utils
+import utils.common_utils as utils
 
 
 csv.field_size_limit(sys.maxsize)
 
-FIELDNAMES = ['image_id', 'image_w', 'image_h', 'num_boxes', 'boxes', 'features']
-infile = 'data/test2015_36/test2015_resnet101_faster_rcnn_genome_36.tsv'
+FIELDNAMES = ["img_id", "img_h", "img_w", "objects_id", "objects_conf",
+              "attrs_id", "attrs_conf", "num_boxes", "boxes", "features"]
+infile = 'data/test2015_obj36.tsv'
 test_data_file = 'data/test36.hdf5'
 test_indices_file = 'data/test36_imgid2idx.pkl'
 test_ids_file = 'data/test_ids.pkl'
@@ -38,7 +39,8 @@ if __name__ == '__main__':
     h_test = h5py.File(test_data_file, "w")
 
     if os.path.exists(test_ids_file):
-        test_imgids = pickle.load(open(test_ids_file))
+        with open(test_ids_file, 'rb') as test_file:
+            test_imgids = pickle.load(test_file)
     else:
         test_imgids = utils.load_imageid('data/test2015')
         pickle.dump(test_imgids, open(test_ids_file, 'wb'))
@@ -55,15 +57,15 @@ if __name__ == '__main__':
     test_counter = 0
 
     print("reading tsv...")
-    with open(infile, "r+b") as tsv_in_file:
+    with open(infile, "r") as tsv_in_file:
         reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames=FIELDNAMES)
         for item in reader:
             item['num_boxes'] = int(item['num_boxes'])
-            image_id = int(item['image_id'])
-            image_w = float(item['image_w'])
-            image_h = float(item['image_h'])
+            image_id = item['img_id']
+            image_w = float(item['img_w'])
+            image_h = float(item['img_h'])
             bboxes = np.frombuffer(
-                base64.decodebytes(item['boxes']),
+                base64.b64decode(item['boxes']),
                 dtype=np.float32).reshape((item['num_boxes'], -1))
 
             box_width = bboxes[:, 2] - bboxes[:, 0]
@@ -89,20 +91,14 @@ if __name__ == '__main__':
                  scaled_height),
                 axis=1)
 
-            if image_id in test_imgids:
-                test_imgids.remove(image_id)
-                test_indices[image_id] = test_counter
-                test_img_bb[test_counter, :, :] = bboxes
-                test_img_features[test_counter, :, :] = np.frombuffer(
-                    base64.decodebytes(item['features']),
+         #   test_imgids.remove(image_id)
+            test_indices[image_id] = test_counter
+            test_img_bb[test_counter, :, :] = bboxes
+            test_img_features[test_counter, :, :] = np.frombuffer(
+                    base64.b64decode(item['features']),
                     dtype=np.float32).reshape((item['num_boxes'], -1))
-                test_spatial_img_features[test_counter, :, :] = spatial_features
-                test_counter += 1
-            else:
-                assert False, 'Unknown image id: %d' % image_id
-
-    if len(test_imgids) != 0:
-        print('Warning: test_image_ids is not empty')
+            test_spatial_img_features[test_counter, :, :] = spatial_features
+            test_counter += 1
 
     pickle.dump(test_indices, open(test_indices_file, 'wb'))
     h_test.close()

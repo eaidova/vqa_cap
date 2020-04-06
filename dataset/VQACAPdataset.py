@@ -67,7 +67,7 @@ class Dictionary(object):
     @classmethod
     def load_from_file(cls, path):
         print('loading dictionary from %s' % path)
-        word2idx, idx2word = cPickle.load(open(path, 'rb'))
+        word2idx, idx2word = pickle.load(open(path, 'rb'))
         d = cls(word2idx, idx2word)
         return d
 

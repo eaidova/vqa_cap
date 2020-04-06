@@ -6,7 +6,7 @@ import re
 import pickle
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import utils
+import utils.common_utils as utils
 
 
 contractions = {
@@ -140,7 +140,8 @@ def filter_answers(answers_dset, min_occurence):
         if gtruth not in occurence:
             occurence[gtruth] = set()
         occurence[gtruth].add(ans_entry['question_id'])
-    for answer in occurence.keys():
+    occurence_keys = list(occurence.keys())
+    for answer in occurence_keys:
         if len(occurence[answer]) < min_occurence:
             occurence.pop(answer)
 
