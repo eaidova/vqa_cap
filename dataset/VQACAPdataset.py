@@ -2,12 +2,11 @@ import os
 import json
 import pickle
 import numpy as np
-import utils
 import h5py
 import torch
 from torch.utils.data import Dataset
 from pycocotools.coco import COCO
-
+import utils.common_utils as utils
 
 class Dictionary(object):
     def __init__(self, word2idx=None, idx2word=None):
@@ -134,15 +133,15 @@ class VQAFeatureDataset(Dataset):
         self.caption_dictionary = caption_dictionary
 
         self.img_id2idx = pickle.load(
-            open(os.path.join(dataroot, '%s36_imgid2idx.pkl' % name)))
+            open(os.path.join(dataroot, '%s36_imgid2idx.pkl' % name), 'rb'))
         print('loading features from h5 file')
-        h5_path = os.path.join(dataroot, '%s36_ori.hdf5' % name)
+        h5_path = os.path.join(dataroot, '%s36.hdf5' % name)
         with h5py.File(h5_path, 'r') as hf:
             self.features = np.array(hf.get('image_features'))
             self.spatials = np.array(hf.get('spatial_features'))
 
         self.coco = COCO('data/annotations/captions_'+name+'2014.json')
-        self.entries  = pickle.load(open('VQA_caption_'+name+'dataset.pkl', 'rb'))
+        self.entries = pickle.load(open('VQA_caption_'+name+'dataset.pkl', 'rb'))
         
         self.tokenize()
         self.tensorize()

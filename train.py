@@ -3,7 +3,7 @@ import time
 from functools import partial
 import torch
 import torch.nn as nn
-import utils
+from utils import common_utils as utils
 from torch.autograd import Variable
 import numpy as np
 
@@ -33,7 +33,7 @@ def compute_score_with_logits(logits, labels):
 
 def select_optimizer(model_params, opt, weights_decay):
     optim = OPTIMIZERS[opt]
-    return optim(model_params, weights_decay=weights_decay)
+    return optim(model_params)
 
 
 def resume_train(model, output, optim):
@@ -47,7 +47,7 @@ def resume_train(model, output, optim):
 
 
 def train(model, train_loader, eval_loader, output, train_config):
-    num_epochs = train_config['num_epochs']
+    num_epochs = train_config['epochs']
     utils.create_dir(output)
     logger = utils.Logger(os.path.join(output, 'log.txt'))
     best_eval_score = 0
@@ -74,7 +74,7 @@ def train(model, train_loader, eval_loader, output, train_config):
             if np.mod(i, 100) == 0:
                 
                 mini_batch_score = compute_score_with_logits( pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data).sum()
-                print(i, loss.data[0], mini_batch_score)
+                #print(i, loss.data[0], mini_batch_score)
 
             loss.backward()
             nn.utils.clip_grad_norm(model.parameters(), 0.25)
@@ -82,7 +82,7 @@ def train(model, train_loader, eval_loader, output, train_config):
             optim.zero_grad()
 
             batch_score = compute_score_with_logits( pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data).sum()
-            total_loss += loss.data[0] * v.size(0)
+            total_loss += loss.data * v.size(0)
             train_score += batch_score
 
         total_loss /= (len(train_loader.dataset)*5)
@@ -130,16 +130,16 @@ def evaluate(model, dataloader):
         q = Variable(q.type(torch.LongTensor), volatile=True).cuda()
         c = Variable(c.type(torch.LongTensor), volatile=True).cuda()
         
-        pred, pred_rc , pred_qc ,target_qc= model(v, b, q, a, c )
+        pred, pred_rc, pred_qc, target_qc = model(v, b, q, a, c )
         loss = instance_bce_with_logits(pred.view(-1, pred.size(-1)), a.view(-1, a.size(-1)))
-        V_loss += loss.data[0] * v.size(0)
+        V_loss += loss.data * v.size(0)
         batch_score = compute_score_with_logits( pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data).sum()
         score += batch_score
         upper_bound += (a.view(-1, a.size(-1)).max(1)[0]).sum()
         num_data += pred.size(0)
 
-    score /=  (len(dataloader.dataset ) * 5)
-    V_loss /= (len(dataloader.dataset ) * 5)
-    upper_bound /= (len(dataloader.dataset ) * 5)
+    score /= (len(dataloader.dataset) * 5)
+    V_loss /= (len(dataloader.dataset) * 5)
+    upper_bound /= (len(dataloader.dataset) * 5)
 
     return score, upper_bound, V_loss

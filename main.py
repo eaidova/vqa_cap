@@ -41,10 +41,10 @@ if __name__ == '__main__':
         seed = random.randint(1, 10000)
         random.seed(seed)
         torch.manual_seed(seed)
-        torch.cuda.manual_seed(args.seed)
+        torch.cuda.manual_seed(seed)
     else:
-        torch.manual_seed(args.seed)
-        torch.cuda.manual_seed(args.seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
     torch.backends.cudnn.benchmark = True
 
     output = output_dir(args.output, config)
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     caption_dictionary = Dictionary.load_from_file('data/caption_dictionary.pkl') 
     train_dset = VQAFeatureDataset('train', dictionary, caption_dictionary)
-    batch_size = args.batch_size
+    batch_size = config['train']['batch_size']
     train_loader = DataLoader(train_dset, batch_size, shuffle=True, num_workers=0)
     eval_dset = VQAFeatureDataset('val', dictionary, caption_dictionary)
     eval_loader = DataLoader(eval_dset, batch_size, shuffle=True, num_workers=0)
@@ -60,5 +60,5 @@ if __name__ == '__main__':
     model = model.cuda()
     init_weights(model, config['train']['initializer'])
     model.w_emb.init_embedding('data/glove6b_init_300d.npy')
-    model = nn.DataParallel(model,device_ids = args.device_ids)
+    model = nn.DataParallel(model, device_ids = args.device_ids)
     train(model, train_loader, eval_loader, output, config['train'])

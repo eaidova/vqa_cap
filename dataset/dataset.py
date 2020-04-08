@@ -2,7 +2,7 @@ import os
 import json
 import pickle
 import numpy as np
-import utils
+import utils.common_utils as utils
 import h5py
 import torch
 from torch.utils.data import Dataset

@@ -156,24 +156,24 @@ class Model_4(nn.Module):
         pred_ans = F.sigmoid(logits).contiguous()
         pred_rc = F.sigmoid(rc_repr).contiguous()
         
-        batch = batch / 5
+        batch = batch // 5
         
-        caption_from_ans =  pred_rc[:, : , : 3129 ]
+        caption_from_ans = pred_rc[:, :, :3129]
 
-        caption_from_ans = caption_from_ans.contiguous().view(batch, 1 ,5, 20, -1).repeat(1,5,1,1,1)
+        caption_from_ans = caption_from_ans.contiguous().view(batch, 1, 5, 20, -1).repeat(1, 5, 1, 1, 1)
         
-        similarities_ = (caption_from_ans * (pred_ans.view(batch, 5,1,1,-1).repeat(1, 1, 5, 20, 1))).sum(4)
+        similarities_ = (caption_from_ans * (pred_ans.view(batch, 5, 1, 1, -1).repeat(1, 1, 5, 20, 1))).sum(4)
         similarities, _ = similarities_.max(3)
         _, indices = similarities.max(2)
-        indices = indices.view(-1,1 )
+        indices = indices.view(-1, 1)
         target_qc_mask = torch.zeros(batch*5, 5)
         target_qc_mask.scatter_(1, indices.data.type(torch.LongTensor), 1)
-        target_qc_mask = Variable(target_qc_mask.view(batch, 5, 5, 1).repeat(1,1,1,20).type(torch.LongTensor)).cuda()
-        target_qc = c.view(batch,1,5,20).repeat(1,5,1,1)
+        target_qc_mask = Variable(target_qc_mask.view(batch, 5, 5, 1).repeat(1, 1, 1, 20).type(torch.LongTensor)).cuda()
+        target_qc = c.view(batch, 1, 5, 20).repeat(1, 5, 1, 1)
         target_qc = target_qc * target_qc_mask
         target_qc = target_qc.sum(2).view(-1, 20)
         qc_w_emb = self.caption_w_emb(target_qc) # [batch * 5, 20 , hid_dim]
-        qc_emb = self.question_caption_rnn(v_qc ,qc_w_emb)
+        qc_emb = self.question_caption_rnn(v_qc, qc_w_emb)
         qc_repr = self.caption_decoder(qc_emb)
         pred_qc = F.sigmoid(qc_repr).contiguous()
         
@@ -265,7 +265,7 @@ def build_model(model_config, dataset):
     model_builder = MODELS.get(model_type)
     if model_builder is None:
         raise ValueError('Wrong model type {}'.format(model_type))
-    num_hid = model_config['num_hid']
+    num_hid = model_config['num_hidden']
     norm = model_config['norm']
     activation = model_config['activation']
     train_config = model_config['train']

@@ -3,11 +3,11 @@ import re
 from copy import copy
 from collections import OrderedDict
 import yaml
-from ..train import OPTIMIZERS
-from ..model.weights_init import WEIGHTS_INIT
-from ..model.models import  MODELS
-from ..model.fc import ACTIVATION
-from ..model.fc import NORMALIZATION
+from train import OPTIMIZERS
+from model.weights_init import WEIGHTS_INIT
+from model.models import  MODELS
+from model.fc import ACTIVATION
+from model.fc import NORMALIZATION
 
 class ConfigError(ValueError):
     pass
@@ -41,7 +41,7 @@ class ConfigValidator(BaseValidator):
         else:
             for name in dir(self):
                 value = getattr(self, name)
-                if not isinstance(value, BaseField):
+                if not isinstance(value, BaseValidator):
                     continue
 
                 field_copy = copy(value)
@@ -182,12 +182,6 @@ class NumberField(BaseField):
     def type(self):
         return self._value_type
 
-    dropout_l: 0.1
-    dropout_c: 0.5
-    dropout_w: 0.4
-    dropout_g: 0.2
-    seed: 42
-
 class TrainConfig(ConfigValidator):
     batch_size = NumberField(value_type=int, optional=True, min_value=1, default=16)
     epochs = NumberField(value_type=int, min_value=1)
@@ -201,6 +195,10 @@ class TrainConfig(ConfigValidator):
     dropout_g = NumberField(value_type=float, optional=True, min_value=0.0, max_value=1.0, default=0.0)
     weights_decay = NumberField(value_type=float, optional=True, min_value=0.0, max_value=1.0, default=0.0)
 
+
+    def required(self):
+        return True
+
 class ModelConfig(ConfigValidator):
     type = StringField(choices=MODELS)
     num_hidden = NumberField(value_type=int, default=1024, min_value=1)
@@ -210,8 +208,8 @@ class ModelConfig(ConfigValidator):
 
 def read_config(config_file):
     with open(config_file, 'r') as content:
-    config_dict = yaml.safe_load(content)
-    config_validator = ModelConfig('model')
-    config_validator.validate(config_dict['model'])
+        config_dict = yaml.safe_load(content)
+        config_validator = ModelConfig('model')
+        config_validator.validate(config_dict['model'])
 
     return config_dict['model']
