@@ -39,7 +39,11 @@ See [data preparation instruction](./data/README.md)
 ## Training
 You are able to run training using following command
 ```bash
-python main.py --config configs/caption_vqa.yml --device_ids <gpu_ids>
+python main.py --mode train --config configs/caption_vqa.yml --device_ids <gpu_ids>
 ```
+
 ## Test on VQA2.0
-TBD
+```bash
+python main.py --mode test --config configs/caption_vqa.yml --device_ids <gpu_ids>
+```
+Prediction file will be generated for submitting to [evaluation server](https://evalai.cloudcv.org/web/challenges/challenge-page/514/evaluation)

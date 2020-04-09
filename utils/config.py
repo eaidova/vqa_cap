@@ -193,11 +193,17 @@ class TrainConfig(ConfigValidator):
     dropout_c = NumberField(value_type=float, optional=True, min_value=0.0, max_value=1.0, default=0.0)
     dropout_w = NumberField(value_type=float, optional=True, min_value=0.0, max_value=1.0, default=0.0)
     dropout_g = NumberField(value_type=float, optional=True, min_value=0.0, max_value=1.0, default=0.0)
-    weights_decay = NumberField(value_type=float, optional=True, min_value=0.0, max_value=1.0, default=0.0)
-
 
     def required(self):
         return True
+
+class TestConfig(ConfigValidator):
+    batch_size = NumberField(value_type=int, optional=True, min_value=1, default=1)
+    seed = NumberField(value_type=int, optional=True, min_value=0, default=0)
+
+    def required(self):
+        return True
+
 
 class ModelConfig(ConfigValidator):
     type = StringField(choices=MODELS)
@@ -205,6 +211,8 @@ class ModelConfig(ConfigValidator):
     activation = StringField(choices=ACTIVATION)
     norm = StringField(choices=NORMALIZATION, optional=True, default='weights')
     train = TrainConfig('train')
+    test = TestConfig('test')
+
 
 def read_config(config_file):
     with open(config_file, 'r') as content:

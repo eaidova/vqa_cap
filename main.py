@@ -78,6 +78,7 @@ def main(args):
         model = nn.DataParallel(model, device_ids=args.device_ids)
         test(model, test_loader, output, args.checkpoint)
 
+
 if __name__ == '__main__':
     args = parse_args()
     main(args)
