@@ -112,9 +112,9 @@ class VQAFeatureDataset(Dataset):
         self.dictionary = dictionary
 
         self. img_id2idx = pickle.load(
-            open(os.path.join(dataroot, '%s36_imgid2idx.pkl' % name)))
+            open(os.path.join(dataroot, '{}36_imgid2idx.pkl'.format(name))))
         print('loading features from h5 file')
-        h5_path = os.path.join(dataroot, '%s36.hdf5' % name)
+        h5_path = os.path.join(dataroot, '{}36.hdf5'.format(name))
         with h5py.File(h5_path, 'r') as hf:
             self.features = np.array(hf.get('image_features'))
             self.spatials = np.array(hf.get('spatial_features'))
@@ -168,8 +168,10 @@ class VQAFeatureDataset(Dataset):
 
         question = entry['q_token']
         answer = entry['answer']
-        labels = answer['labels']
-        scores = answer['scores']
+        labels, scores = None, None
+        if answer:
+            labels = answer['labels']
+            scores = answer['scores']
         target = torch.zeros(self.num_ans_candidates)
         if labels is not None:
             target.scatter_(0, labels, scores)

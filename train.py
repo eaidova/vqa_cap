@@ -36,34 +36,35 @@ def select_optimizer(model_params, opt, weights_decay):
     return optim(model_params)
 
 
-def resume_train(model, output, optim):
-    resume_path = os.path.join(output, 'init_model.pth')
-    if os.path.isfile(resume_path):
-        print("=> loading checkpoint '{}'".format(resume_path))
-        checkpoint = torch.load(resume_path)
+def resume_train(model, checkpoint, optim):
+    if os.path.isfile(checkpoint):
+        print("=> loading checkpoint '{}'".format(checkpoint))
+        checkpoint = torch.load(checkpoint)
         model.load_state_dict(checkpoint['state_dict'])
         if 'optimizer' in checkpoint:
             optim.load_state_dict(checkpoint['optimizer'])
 
 
-def train(model, train_loader, eval_loader, output, train_config):
+def train(model, train_loader, eval_loader, output, train_config, checkpoint=None):
     num_epochs = train_config['epochs']
     utils.create_dir(output)
     logger = utils.Logger(os.path.join(output, 'log.txt'))
     best_eval_score = 0
     optim = select_optimizer(model.parameters(), train_config['optimizer'], train_config['weights_decay'])
-    for epoch in range(num_epochs):
+    if checkpoint:
+        resume_train(model, checkpoint, optim)
 
+    for epoch in range(num_epochs):
         total_loss = 0
         train_score = 0
         t = time.time()
-        for i, (v, b, q, a, c) in enumerate(train_loader):
+        for i, (v, _, q, a, c, _) in enumerate(train_loader):
+            model.train()
             v = Variable(v).cuda()
-            b = Variable(b).cuda()
             a = Variable(a).cuda()
             q = Variable(q.type(torch.LongTensor)).cuda()
             c = Variable(c.type(torch.LongTensor)).cuda()
-            pred, pred_rc , pred_qc ,target_qc= model(v, b, q, a, c )
+            pred, pred_rc , pred_qc ,target_qc= model(v,q, c)
 
             loss_ans = instance_bce_with_logits(pred.view(-1, pred.size(-1)), a.view(-1, a.size(-1)))
 
@@ -92,15 +93,13 @@ def train(model, train_loader, eval_loader, output, train_config):
             'epoch': epoch + 1,
             'state_dict': model.state_dict(),
             'optimizer': optim.state_dict(),
-        }, filename=output + '/epoch_%d_model.pth'%epoch  )
+        }, filename=output + '/epoch_{}_model.pth'.format(output))
 
-        model.train(False)
+        model.eval()
         eval_score, bound, V_loss = evaluate(model, eval_loader)
-        model.train(True)
-
-        logger.write('epoch %d, time: %.2f' % (epoch, time.time()-t))
-        logger.write('\ttrain_loss: %.3f, score: %.3f' % (total_loss, train_score))
-        logger.write('\teval loss: %.3f, score: %.3f (%.3f)' % (V_loss, 100 * eval_score, 100 * bound))
+        logger.write('epoch {}, time: {.2f}'.format(epoch, time.time()-t))
+        logger.write('\ttrain_loss: {.3f}, score: {.3f}'.format(total_loss, train_score))
+        logger.write('\teval loss: {.3f}, score: {.3f} ({.3f})'.format(V_loss, 100 * eval_score, 100 * bound))
 
         if eval_score > best_eval_score:
             model_path = os.path.join(output, 'best_model.pth')
@@ -122,24 +121,23 @@ def evaluate(model, dataloader):
     V_loss = 0
     upper_bound = 0
     num_data = 0
+    with torch.no_grad():
+        for v, _, q, a , c, _ in iter(dataloader):
+            v = Variable(v).cuda()
+            a = Variable(a).cuda()
+            q = Variable(q.type(torch.LongTensor)).cuda()
+            c = Variable(c.type(torch.LongTensor)).cuda()
 
-    for v, b, q, a , c in iter(dataloader):
-        v = Variable(v, volatile=True).cuda()
-        b = Variable(b, volatile=True).cuda()
-        a = Variable(a, volatile=True).cuda()
-        q = Variable(q.type(torch.LongTensor), volatile=True).cuda()
-        c = Variable(c.type(torch.LongTensor), volatile=True).cuda()
-        
-        pred, pred_rc, pred_qc, target_qc = model(v, b, q, a, c )
-        loss = instance_bce_with_logits(pred.view(-1, pred.size(-1)), a.view(-1, a.size(-1)))
-        V_loss += loss.data * v.size(0)
-        batch_score = compute_score_with_logits( pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data).sum()
-        score += batch_score
-        upper_bound += (a.view(-1, a.size(-1)).max(1)[0]).sum()
-        num_data += pred.size(0)
+            pred, pred_rc, pred_qc, target_qc = model(v, q, c)
+            loss = instance_bce_with_logits(pred.view(-1, pred.size(-1)), a.view(-1, a.size(-1)))
+            V_loss += loss.data * v.size(0)
+            batch_score = compute_score_with_logits( pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data).sum()
+            score += batch_score
+            upper_bound += (a.view(-1, a.size(-1)).max(1)[0]).sum()
+            num_data += pred.size(0)
 
-    score /= (len(dataloader.dataset) * 5)
-    V_loss /= (len(dataloader.dataset) * 5)
-    upper_bound /= (len(dataloader.dataset) * 5)
+        score /= (len(dataloader.dataset) * 5)
+        V_loss /= (len(dataloader.dataset) * 5)
+        upper_bound /= (len(dataloader.dataset) * 5)
 
     return score, upper_bound, V_loss

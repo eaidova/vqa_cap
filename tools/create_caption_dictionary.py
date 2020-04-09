@@ -1,8 +1,5 @@
 from __future__ import print_function
-import os
-import sys
 import numpy as np
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dataset.VQACAPdataset import Dictionary
 from pycocotools.coco import COCO
 import pickle
@@ -11,7 +8,7 @@ import pickle
 def create_dictionary(dictionary):
     names = ['train','val']
     for name in names:
-        coco = COCO('data/annotations/captions_'+name+'2014.json')
+        coco = COCO('data/annotations/captions_2014.json'.format(name))
         caption_ids = list(coco.anns.keys())
         length_captions = 0
         for i in range(len(caption_ids)):
@@ -26,7 +23,7 @@ def create_glove_embedding_init(idx2word, glove_file):
     with open(glove_file, 'r') as f:
         entries = f.readlines()
     emb_dim = len(entries[0].split(' ')) - 1
-    print('embedding dim is %d' % emb_dim)
+    print('embedding dim is {}'.format(emb_dim))
     weights = np.zeros((len(idx2word), emb_dim), dtype=np.float32)
 
     for entry in entries:
@@ -59,6 +56,6 @@ if __name__ == '__main__':
     caption_dictionary = create_dictionary(caption_dictionary)
     caption_dictionary.dump_to_file('data/caption_dictionary.pkl')
     emb_dim = 300
-    glove_file = 'data/glove/glove.6B.%dd.txt' % emb_dim
+    glove_file = 'data/glove/glove.6B.{}.txt'.format(emb_dim)
     weights, word2emb = create_glove_embedding_init(caption_dictionary.idx2word, glove_file)
-    np.save('data/glove6b_caption_init_%dd.npy' % emb_dim, weights)
+    np.save('data/glove6b_caption_init_{}.npy'.format(emb_dim), weights)

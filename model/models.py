@@ -21,11 +21,10 @@ class Model(nn.Module):
         self.v_net = v_net
         self.classifier = classifier
 
-    def forward(self, v, b, q, labels):
+    def forward(self, v, q, *args, **kwargs):
         """Forward
 
         v: [batch, num_objs, obj_dim]
-        b: [batch, num_objs, b_dim]
         q: [batch_size, seq_length]
 
         return: logits, not probs
@@ -59,17 +58,7 @@ class Model_2(nn.Module):
         self.v2rc_net = v2rc_net
         self.v2qc_net = v2qc_net
 
-    def forward(self, v, b, q, labels, c):
-        """Forward
-
-        v: [batch,5, num_objs, obj_dim]
-        b: [batch, 5,num_objs, b_dim]
-        q: [batch, 5, seq_length]
-        c: [batch, 5, 20 ]
-
-        return: logits, not probs
-        """
-        
+    def forward(self, v, q, c):
         batch = c.size(0)
         q = q.view(batch * 5, -1)
         c = c.view(batch * 5, -1)
@@ -118,16 +107,7 @@ class Model_4(nn.Module):
         self.v2rc_net = v2rc_net
         self.v2qc_net = v2qc_net
 
-    def forward(self, v, b, q, labels, c):
-        """Forward
-
-        v: [batch,5, num_objs, obj_dim]
-        b: [batch, 5,num_objs, b_dim]
-        q: [batch, 5, seq_length]
-        c: [batch, 5, 20 ]
-
-        return: logits, not probs
-        """
+    def forward(self, v, q, c):
         batch = c.size(0)
         q = q.view(batch * 5, -1)
         c = c.view(batch * 5, -1)

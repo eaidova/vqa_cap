@@ -1,8 +1,6 @@
 import os
-import sys
 import json
 import numpy as np
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dataset.VQACAPdataset import Dictionary
 
 

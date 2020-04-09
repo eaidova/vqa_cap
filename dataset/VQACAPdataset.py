@@ -61,11 +61,11 @@ class Dictionary(object):
 
     def dump_to_file(self, path):
         pickle.dump([self.word2idx, self.idx2word], open(path, 'wb'))
-        print('dictionary dumped to %s' % path)
+        print('dictionary dumped to {}'.format(path))
 
     @classmethod
     def load_from_file(cls, path):
-        print('loading dictionary from %s' % path)
+        print('loading dictionary from {}'.format(path))
         word2idx, idx2word = pickle.load(open(path, 'rb'))
         d = cls(word2idx, idx2word)
         return d
@@ -121,7 +121,7 @@ def _load_dataset(dataroot, name, img_id2val):
 class VQAFeatureDataset(Dataset):
     def __init__(self, name, dictionary,caption_dictionary, dataroot='data'):
         super(VQAFeatureDataset, self).__init__()
-        assert name in ['train', 'val']
+        assert name in ['train', 'val', 'test']
 
         ans2label_path = os.path.join(dataroot, 'cache', 'trainval_ans2label.pkl')
         label2ans_path = os.path.join(dataroot, 'cache', 'trainval_label2ans.pkl')
@@ -133,15 +133,16 @@ class VQAFeatureDataset(Dataset):
         self.caption_dictionary = caption_dictionary
 
         self.img_id2idx = pickle.load(
-            open(os.path.join(dataroot, '%s36_imgid2idx.pkl' % name), 'rb'))
+            open(os.path.join(dataroot, '{}36_imgid2idx.pkl'.format(name)), 'rb'))
         print('loading features from h5 file')
-        h5_path = os.path.join(dataroot, '%s36.hdf5' % name)
+        h5_path = os.path.join(dataroot, '{}36.hdf5'.format(name))
         with h5py.File(h5_path, 'r') as hf:
             self.features = np.array(hf.get('image_features'))
             self.spatials = np.array(hf.get('spatial_features'))
 
-        self.coco = COCO('data/annotations/captions_'+name+'2014.json')
-        self.entries = pickle.load(open('VQA_caption_'+name+'dataset.pkl', 'rb'))
+        if name != 'test':
+            self.coco = COCO('data/annotations/captions_{}2014.json'.format(name))
+        self.entries = pickle.load(open('VQA_caption_{}dataset.pkl'.format(name), 'rb'))
         
         self.tokenize()
         self.tensorize()
@@ -224,10 +225,10 @@ class VQAFeatureDataset(Dataset):
         target = entry['answer_tensor'] 
         q_idx = np.mod(np.random.permutation(np.maximum(5, questions.shape[0]))[:5],questions.shape[0])
         c_idx = np.mod(np.random.permutation(np.maximum(5,captions.shape[0]))[:5],captions.shape[0])
-        captions =torch.index_select(captions, 0, torch.LongTensor(c_idx.astype('float32')))
+        captions = torch.index_select(captions, 0, torch.LongTensor(c_idx.astype('float32')))
         questions = torch.index_select(questions, 0, torch.LongTensor(q_idx.astype('float32')))
         target = torch.index_select(target, 0, torch.LongTensor(q_idx.astype('float32')))
-        return features, spatials, questions, target, captions
+        return features, spatials, questions, target, captions, entry['question_id']
 
     def __len__(self):
         return len(self.entries)

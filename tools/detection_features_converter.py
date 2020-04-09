@@ -9,8 +9,6 @@ Hierarchy of HDF5 file:
   'image_bb': num_images x num_boxes x 4 array of bounding boxes }
 """
 import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import base64
 import csv
