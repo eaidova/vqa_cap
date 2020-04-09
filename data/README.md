@@ -14,8 +14,9 @@ Alternatively you can download data by yourself using following links:
     - [train annotation](https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Annotations_Train_mscoco.zip)
     - [val annotation](https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Annotations_Val_mscoco.zip)
   * Faster RCNN image features
-    - [trainval images](https://imagecaption.blob.core.windows.net/imagecaption/trainval_36.zip)
-    - [test images](https://imagecaption.blob.core.windows.net/imagecaption/test2015_36.zip)
+    - [train images](nlp.cs.unc.edu/data/lxmert_data/mscoco_imgfeat/train2014_obj36.zip)
+    - [val images](nlp.cs.unc.edu/data/lxmert_data/val2014_obj36.zip)
+    - [test images](nlp.cs.unc.edu/data/lxmert_data/mscoco_imgfeat/test2015_obj36.zip)
     
 **Note! All components of the dataset should be unpacked to `data` directory**
 ## 2. Preprocess data

@@ -32,6 +32,10 @@ train_indices_file = 'data/train36_imgid2idx.pkl'
 val_indices_file = 'data/val36_imgid2idx.pkl'
 train_ids_file = 'data/train_ids.pkl'
 val_ids_file = 'data/val_ids.pkl'
+test_infile = 'data/test2015_obj36.tsv'
+test_data_file = 'data/test36.hdf5'
+test_indices_file = 'data/test36_imgid2idx.pkl'
+test_ids_file = 'data/test_ids.pkl'
 
 feature_length = 2048
 num_fixed_boxes = 36
@@ -85,20 +89,26 @@ def tsv_to_pickle(infile, image_ids, indices, img_bb, img_features, spatial_img_
 if __name__ == '__main__':
     h_train = h5py.File(train_data_file, "w")
     h_val = h5py.File(val_data_file, "w")
+    h_test = h5py.File(test_data_file, "w")
 
-    if os.path.exists(train_ids_file) and os.path.exists(val_ids_file):
+    if os.path.exists(train_ids_file) and os.path.exists(val_ids_file) and  os.path.exists(test_ids_file):
         with open(train_ids_file, 'rb') as train_file:
             train_imgids = pickle.load(train_file)
         with open(val_ids_file, 'rb') as val_file:
             val_imgids = pickle.load(val_file)
+        with open(test_ids_file, 'rb') as test_file:
+            test_imgids = pickle.load(test_file)
     else:
         train_imgids = utils.load_imageid('data/train2014')
         val_imgids = utils.load_imageid('data/val2014')
         pickle.dump(train_imgids, open(train_ids_file, 'wb'))
         pickle.dump(val_imgids, open(val_ids_file, 'wb'))
+        test_imgids = utils.load_imageid('data/test2015')
+        pickle.dump(test_imgids, open(test_ids_file, 'wb'))
 
     train_indices = {}
     val_indices = {}
+    test_indices = {}
 
     train_img_features = h_train.create_dataset(
         'image_features', (len(train_imgids), num_fixed_boxes, feature_length), 'f')
@@ -114,16 +124,42 @@ if __name__ == '__main__':
     val_spatial_img_features = h_val.create_dataset(
         'spatial_features', (len(val_imgids), num_fixed_boxes, 6), 'f')
 
+    test_img_features = h_test.create_dataset(
+        'image_features', (len(test_imgids), num_fixed_boxes, feature_length), 'f')
+    test_img_bb = h_test.create_dataset(
+        'image_bb', (len(test_imgids), num_fixed_boxes, 4), 'f')
+    test_spatial_img_features = h_test.create_dataset(
+        'spatial_features', (len(test_imgids), num_fixed_boxes, 6), 'f')
+
     print("reading tsv...")
-    train_indices, train_img_bb, train_img_features, train_spatial_img_features = tsv_to_pickle(train_infile, train_imgids, train_indices, train_img_bb, train_img_features, train_spatial_img_features)
-    val_indices, val_img_bb, val_img_features, val_spatial_img_features = tsv_to_pickle(val_infile,
-                                                                                                val_imgids,
-                                                                                                val_indices,
-                                                                                                val_img_bb,
-                                                                                                val_img_features,
-                                                                                                val_spatial_img_features)
+    train_indices, train_img_bb, train_img_features, train_spatial_img_features = tsv_to_pickle(
+        train_infile,
+        train_imgids,
+        train_indices,
+        train_img_bb,
+        train_img_features,
+        train_spatial_img_features
+    )
+    val_indices, val_img_bb, val_img_features, val_spatial_img_features = tsv_to_pickle(
+        val_infile,
+        val_imgids,
+        val_indices,
+        val_img_bb,
+        val_img_features,
+        val_spatial_img_features
+    )
+    test_indices, test_img_bb, test_img_features, test_spatial_img_features = tsv_to_pickle(
+        test_infile,
+        test_imgids,
+        test_indices,
+        test_img_bb,
+        test_img_features,
+        test_spatial_img_features
+    )
     pickle.dump(train_indices, open(train_indices_file, 'wb'))
     pickle.dump(val_indices, open(val_indices_file, 'wb'))
+    pickle.dump(test_indices, open(test_indices_file, 'wb'))
     h_train.close()
     h_val.close()
+    h_test.close()
     print("done!")

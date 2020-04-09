@@ -27,11 +27,15 @@ wget -P data https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Annotations_Val_ms
 unzip data/v2_Annotations_Val_mscoco.zip -d data
 rm data/v2_Annotations_Val_mscoco.zip
 
-# Image Features
-#wget -P data https://imagecaption.blob.core.windows.net/imagecaption/trainval_36.zip
-#unzip data/trainval_36.zip -d data
-#rm data/trainval_36.zip
+# Caption Annotation
+wget -P data http://images.cocodataset.org/annotations/annotations_trainval2014.zip
+unzip data/annotations_trainval2014.zip -d data
+rm data/annotations_trainval2014.zip
 
-#wget -P data https://imagecaption.blob.core.windows.net/imagecaption/test2015_36.zip
-#unzip data/test2015_36.zip -d data
-#rm data/test2015_36.zip
+#Image Features
+wget nlp.cs.unc.edu/data/lxmert_data/mscoco_imgfeat/train2014_obj36.zip -P data
+unzip data/train2014_obj36.zip -d data && rm data/train2014_obj36.zip
+wget nlp.cs.unc.edu/data/lxmert_data/val2014_obj36.zip -P data
+unzip data/val2014_obj36.zip -d data && rm data/val2014_obj36.zip
+wget nlp.cs.unc.edu/data/lxmert_data/mscoco_imgfeat/test2015_obj36.zip -P data
+unzip data/test2015_obj36.zip -d data && rm data/test2015_obj36.zip
