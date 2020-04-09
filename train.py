@@ -1,10 +1,12 @@
 import os
 import time
+import datetime
 from functools import partial
 import torch
 import torch.nn as nn
 from utils import common_utils as utils
 from torch.autograd import Variable
+from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 
 OPTIMIZERS = {
@@ -46,6 +48,7 @@ def resume_train(model, checkpoint, optim):
 
 
 def train(model, train_loader, eval_loader, output, train_config, checkpoint=None):
+    writer = SummaryWriter('{}/logs/{}'.format(output, datetime.datetime.now()))
     num_epochs = train_config['epochs']
     utils.create_dir(output)
     logger = utils.Logger(os.path.join(output, 'log.txt'))
@@ -73,16 +76,21 @@ def train(model, train_loader, eval_loader, output, train_config, checkpoint=Non
             
             loss = loss_ans + loss_rc + loss_qc
             if np.mod(i, 100) == 0:
-                
-                mini_batch_score = compute_score_with_logits( pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data).sum()
-                #print(i, loss.data[0], mini_batch_score)
+                mini_batch_score = compute_score_with_logits(
+                    pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data
+                ).sum()
+                logger.write('epoch {} step {} mini_batch_score {}'.format(epoch, i, mini_batch_score))
 
+            writer.add_scalar('Train/loss', loss.item(), epoch * len(train_loader) + i)
+            writer.add_scalar('Train/loss_answer', loss_ans.item(), epoch * len(train_loader) + i)
+            writer.add_scalar('Train/loss_question_captioning', loss_qc.item(), epoch * len(train_loader) + i)
             loss.backward()
             nn.utils.clip_grad_norm(model.parameters(), 0.25)
             optim.step()
             optim.zero_grad()
 
             batch_score = compute_score_with_logits( pred.view(-1,pred.size(-1)), a.view(-1, a.size(-1)).data).sum()
+            writer.add_scalar('Train/mini_batch_score', batch_score, epoch * len(train_loader) + i)
             total_loss += loss.data * v.size(0)
             train_score += batch_score
 
@@ -100,6 +108,10 @@ def train(model, train_loader, eval_loader, output, train_config, checkpoint=Non
         logger.write('epoch {}, time: {.2f}'.format(epoch, time.time()-t))
         logger.write('\ttrain_loss: {.3f}, score: {.3f}'.format(total_loss, train_score))
         logger.write('\teval loss: {.3f}, score: {.3f} ({.3f})'.format(V_loss, 100 * eval_score, 100 * bound))
+        writer.add_scalar('Train/total_loss', total_loss, epoch)
+        writer.add_scalar('Train/total_score', train_score)
+        writer.add_scalar('Eval/loss', V_loss, epoch)
+        writer.add_scalar('Eval/score', 100 * eval_score, epoch)
 
         if eval_score > best_eval_score:
             model_path = os.path.join(output, 'best_model.pth')

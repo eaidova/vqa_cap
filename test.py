@@ -3,6 +3,7 @@ import json
 import torch
 from torch.autograd import Variable
 
+
 def test(model, data_loader, output_dir, checkpoint_path):
     ckpt = torch.load(checkpoint_path)
     model.load_state_dict(ckpt['state_dict'])

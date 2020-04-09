@@ -4,7 +4,6 @@ import os
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-
 from dataset.VQACAPdataset import Dictionary, VQAFeatureDataset
 from train import train
 from model.weights_init import init_weights
